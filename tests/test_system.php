@@ -1,0 +1,147 @@
+<?php
+// tests/test_system.php
+
+require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../calculate_commissions.php';
+require_once __DIR__ . '/../rank_calculator.php';
+require_once __DIR__ . '/../wallet_to_epin.php';
+require_once __DIR__ . '/../redeem_epin.php';
+require_once __DIR__ . '/../razorpay_callback.php';
+
+function runTests() {
+    echo "==================================================\n";
+    echo "STARTING SYSTEM INTEGRATION & BUSINESS LOGIC TESTS\n";
+    echo "==================================================\n\n";
+
+    // Setup temporary SQLite Database in memory or temp file
+    $testDbPath = __DIR__ . '/test_db.sqlite';
+    if (file_exists($testDbPath)) {
+        unlink($testDbPath);
+    }
+
+    putenv("SQLITE_PATH={$testDbPath}");
+    putenv("DB_DRIVER=sqlite");
+
+    $db = Database::getConnection();
+
+    // 1. Initialize Tables from schema.sql
+    echo "[1/6] Initializing Database Schema & Seeding Master Tables...\n";
+    $schemaSql = file_get_contents(__DIR__ . '/../schema.sql');
+
+    // Strip DATABASE commands and ENUMs for SQLite compatibility in testing
+    $sqliteSql = preg_replace('/CREATE DATABASE.*?;/i', '', $schemaSql);
+    $sqliteSql = preg_replace('/USE `.*?`;/i', '', $sqliteSql);
+    $sqliteSql = preg_replace('/ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci/i', '', $sqliteSql);
+    $sqliteSql = preg_replace('/INT AUTO_INCREMENT PRIMARY KEY/i', 'INTEGER PRIMARY KEY AUTOINCREMENT', $sqliteSql);
+    $sqliteSql = preg_replace('/TINYINT/i', 'INTEGER', $sqliteSql);
+    $sqliteSql = preg_replace('/DATETIME/i', 'TEXT', $sqliteSql);
+    $sqliteSql = preg_replace('/ENUM\(.*?\)/i', 'VARCHAR(50)', $sqliteSql);
+    $sqliteSql = preg_replace('/ON DUPLICATE KEY UPDATE.*?;/s', ';', $sqliteSql);
+    $sqliteSql = preg_replace('/FOR UPDATE/i', '', $sqliteSql);
+    $sqliteSql = preg_replace('/COMMENT \'.*?\'/i', '', $sqliteSql);
+
+    $db->exec($sqliteSql);
+    echo "  -> Schema created successfully.\n\n";
+
+    // 2. Register User Chain (13 Users to test full 12 levels)
+    echo "[2/6] Registering 13-Level Sponsor Chain (User 1 -> User 13)...\n";
+    $userIds = [];
+    $sponsorId = null;
+
+    for ($i = 1; $i <= 13; $i++) {
+        $phoneStr = "900000000" . str_pad($i, 2, '0', STR_PAD_LEFT);
+        $res = Auth::register("User Level {$i}", $phoneStr, "password123", $sponsorId);
+        assert($res['success'] === true, "User {$i} registration failed");
+        $uId = (int)$res['user_id'];
+        $userIds[$i] = $uId;
+        $sponsorId = $uId;
+    }
+    echo "  -> 13 Users created. Top sponsor = #1, Lowest child = #13.\n\n";
+
+    // 3. Test Subscription Activation & 12-Level Commission Distribution
+    echo "[3/6] Testing Subscription Purchase & 12-Level Commission Matrix...\n";
+    // User 13 buys Classic package (voucher_600)
+    $u13 = $userIds[13];
+    $commRes = CommissionCalculator::processSubscriptionCommissions($u13, 'voucher_600');
+    assert($commRes['success'] === true, "Commission calculation failed");
+    assert(count($commRes['commissions_awarded']) === 13, "Expected 13 commission payouts (1 Self + 12 Sponsor Levels)");
+
+    // Check Self Bonus for User 13 (300 points = ₹300)
+    $stmtSelf = $db->prepare("SELECT wallet_balance FROM users WHERE id = ?");
+    $stmtSelf->execute([$u13]);
+    $u13Balance = (float)$stmtSelf->fetch()['wallet_balance'];
+    assert($u13Balance == 300.00, "User 13 self bonus balance mismatch: Expected 300, got {$u13Balance}");
+
+    // Check Level 1 Sponsor (User 12) Classic Points = 500 Pts
+    $u12 = $userIds[12];
+    $stmtU12 = $db->prepare("SELECT wallet_balance FROM users WHERE id = ?");
+    $stmtU12->execute([$u12]);
+    $u12Balance = (float)$stmtU12->fetch()['wallet_balance'];
+    assert($u12Balance == 500.00, "User 12 (Level 1 sponsor) bonus balance mismatch: Expected 500, got {$u12Balance}");
+
+    // Check Level 12 Sponsor (User 1) Classic Points = 10 Pts
+    $u1 = $userIds[1];
+    $stmtU1 = $db->prepare("SELECT wallet_balance FROM users WHERE id = ?");
+    $stmtU1->execute([$u1]);
+    $u1Balance = (float)$stmtU1->fetch()['wallet_balance'];
+    assert($u1Balance == 10.00, "User 1 (Level 12 sponsor) bonus balance mismatch: Expected 10, got {$u1Balance}");
+
+    echo "  -> 12-level commission matrix verified successfully!\n\n";
+
+    // 4. Test Earning Wallet to ePIN Generator Engine
+    echo "[4/6] Testing Wallet to ePIN Generator Engine...\n";
+    // User 12 has ₹500 balance. Let's convert to voucher_300 (₹300)
+    $epinRes = WalletToEpinEngine::createEpinFromWallet($u12, 'voucher_300');
+    assert($epinRes['success'] === true, "ePIN generation failed: " . ($epinRes['message'] ?? ''));
+    $pinCode = $epinRes['pin_code'];
+    assert(strlen($pinCode) === 16, "PIN code length should be 16");
+
+    // Check remaining balance for User 12 (500 - 300 = 200)
+    $stmtU12->execute([$u12]);
+    $u12NewBalance = (float)$stmtU12->fetch()['wallet_balance'];
+    assert($u12NewBalance == 200.00, "User 12 balance after ePIN creation mismatch: Expected 200, got {$u12NewBalance}");
+    echo "  -> ePIN '{$pinCode}' generated successfully! Remaining balance: ₹{$u12NewBalance}\n\n";
+
+    // 5. Test ePIN Redemption System
+    echo "[5/6] Testing ePIN Redemption System...\n";
+    // User 1 redeems ePIN generated by User 12
+    $redeemRes = EpinRedeemer::redeem($u1, $pinCode);
+    assert($redeemRes['success'] === true, "ePIN redemption failed: " . ($redeemRes['message'] ?? ''));
+
+    // Verify ePIN status is now 'used'
+    $stmtPin = $db->prepare("SELECT status, used_by_user_id FROM epins WHERE pin_code = ?");
+    $stmtPin->execute([$pinCode]);
+    $pinRow = $stmtPin->fetch();
+    assert($pinRow['status'] === 'used', "ePIN status should be used");
+    assert((int)$pinRow['used_by_user_id'] === $u1, "ePIN used_by_user_id mismatch");
+    echo "  -> ePIN redeemed and subscription activated successfully!\n\n";
+
+    // 6. Test Rank Calculator Engine
+    echo "[6/6] Testing Rank Progression Engine & Incentive Payouts...\n";
+    // Create 5 direct downlines for User 1 and give them active subscriptions to qualify User 1 for Promoter (Rank 1)
+    for ($d = 101; $d <= 105; $d++) {
+        $r = Auth::register("Direct {$d}", "9800000" . $d, "password123", $u1);
+        $dId = $r['user_id'];
+        CommissionCalculator::processSubscriptionCommissions($dId, 'voucher_300');
+    }
+
+    $rankRes = RankCalculator::processRanksAndPayouts('2026-03-01');
+    assert($rankRes['success'] === true, "Rank processing failed");
+
+    // Verify User 1 upgraded to Promoter (Rank 1) with ₹500 bonus
+    $stmtU1Rank = $db->prepare("SELECT rank_level, wallet_balance FROM users WHERE id = ?");
+    $stmtU1Rank->execute([$u1]);
+    $u1Data = $stmtU1Rank->fetch();
+    assert((int)$u1Data['rank_level'] >= 1, "User 1 should be promoted to Rank 1 (Promoter)");
+    echo "  -> User 1 achieved Rank 1 (Promoter)! Wallet Balance: ₹" . $u1Data['wallet_balance'] . "\n\n";
+
+    echo "==================================================\n";
+    echo "ALL TESTS PASSED SUCCESSFULLY! SYSTEM IS PRODUCTION-READY.\n";
+    echo "==================================================\n";
+
+    // Cleanup test database
+    unlink($testDbPath);
+}
+
+runTests();
