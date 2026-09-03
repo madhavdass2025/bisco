@@ -236,6 +236,7 @@ $totalPointsEarned = (int)($commTotals['total_pts'] ?? 0);
                 <li class="nav-item"><a class="nav-link" href="#network-tree"><i class="bi bi-diagram-3 me-1"></i> Network Tree</a></li>
                 <li class="nav-item"><a class="nav-link" href="#epin-section"><i class="bi bi-ticket-perforated me-1"></i> ePIN Engine</a></li>
                 <li class="nav-item"><a class="nav-link" href="#packages-section"><i class="bi bi-cart-check me-1"></i> Buy Package</a></li>
+                <li class="nav-item"><a class="nav-link text-warning fw-bold" href="admin/schemes.php"><i class="bi bi-sliders me-1"></i> Schemes Manager</a></li>
             </ul>
             <div class="d-flex align-items-center text-white">
                 <div class="me-3 text-end d-none d-md-block">

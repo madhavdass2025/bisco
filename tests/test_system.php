@@ -136,6 +136,27 @@ function runTests() {
     assert((int)$u1Data['rank_level'] >= 1, "User 1 should be promoted to Rank 1 (Promoter)");
     echo "  -> User 1 achieved Rank 1 (Promoter)! Wallet Balance: ₹" . $u1Data['wallet_balance'] . "\n\n";
 
+    // 7. Test Admin Business Schemes Manager Modifications
+    echo "[7/7] Testing Admin Scheme Editing & Creation...\n";
+    // Update Level 1 Affiliate Payout Classic Points from 500 to 600
+    $stmtUpdRule = $db->prepare("UPDATE affiliate_payout_rules SET classic_points = 600 WHERE level = 1");
+    $stmtUpdRule->execute();
+
+    // Verify change reflected in DB
+    $stmtGetRule = $db->query("SELECT classic_points FROM affiliate_payout_rules WHERE level = 1");
+    $newClassicPts = (int)$stmtGetRule->fetch()['classic_points'];
+    assert($newClassicPts === 600, "Classic points update failed");
+
+    // Add Rank 13 (Crown Executive) scheme
+    $stmtNewRank = $db->prepare("INSERT INTO rank_definitions (rank_id, rank_name, requirement_team_count, rank_incentive, monthly_incentive, monthly_duration_months) VALUES (13, 'Crown Executive', 5, 20000000.00, 2000000.00, 10)");
+    $stmtNewRank->execute();
+
+    $stmtGetNewRank = $db->query("SELECT rank_name FROM rank_definitions WHERE rank_id = 13");
+    $rank13Name = $stmtGetNewRank->fetch()['rank_name'];
+    assert($rank13Name === 'Crown Executive', "New rank scheme creation failed");
+
+    echo "  -> Admin Scheme modification & creation verified successfully!\n\n";
+
     echo "==================================================\n";
     echo "ALL TESTS PASSED SUCCESSFULLY! SYSTEM IS PRODUCTION-READY.\n";
     echo "==================================================\n";

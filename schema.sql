@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `password` VARCHAR(255) NOT NULL,
   `rank_level` TINYINT NOT NULL DEFAULT 0 COMMENT '0: Member, 1: Promoter ... 12: Crown Ambassador',
   `wallet_balance` DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+  `is_admin` TINYINT NOT NULL DEFAULT 0 COMMENT '0: Member, 1: Admin',
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`sponsor_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
