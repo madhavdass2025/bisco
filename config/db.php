@@ -10,10 +10,16 @@ class Database {
 
             if ($driver === 'sqlite') {
                 $dbPath = getenv('SQLITE_PATH') ?: __DIR__ . '/../database.sqlite';
+                $isNew = !file_exists($dbPath);
                 self::$instance = new PDO('sqlite:' . $dbPath);
                 self::$instance->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
                 self::$instance->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
                 self::$instance->exec("PRAGMA foreign_keys = ON;");
+
+                if ($isNew) {
+                    require_once __DIR__ . '/../init_db.php';
+                    initDatabase();
+                }
             } else {
                 $host = getenv('DB_HOST') ?: '127.0.0.1';
                 $port = getenv('DB_PORT') ?: '3306';

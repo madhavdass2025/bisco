@@ -29,19 +29,8 @@ function runTests() {
     echo "[1/6] Initializing Database Schema & Seeding Master Tables...\n";
     $schemaSql = file_get_contents(__DIR__ . '/../schema.sql');
 
-    // Strip DATABASE commands and ENUMs for SQLite compatibility in testing
-    $sqliteSql = preg_replace('/CREATE DATABASE.*?;/i', '', $schemaSql);
-    $sqliteSql = preg_replace('/USE `.*?`;/i', '', $sqliteSql);
-    $sqliteSql = preg_replace('/ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci/i', '', $sqliteSql);
-    $sqliteSql = preg_replace('/INT AUTO_INCREMENT PRIMARY KEY/i', 'INTEGER PRIMARY KEY AUTOINCREMENT', $sqliteSql);
-    $sqliteSql = preg_replace('/TINYINT/i', 'INTEGER', $sqliteSql);
-    $sqliteSql = preg_replace('/DATETIME/i', 'TEXT', $sqliteSql);
-    $sqliteSql = preg_replace('/ENUM\(.*?\)/i', 'VARCHAR(50)', $sqliteSql);
-    $sqliteSql = preg_replace('/ON DUPLICATE KEY UPDATE.*?;/s', ';', $sqliteSql);
-    $sqliteSql = preg_replace('/FOR UPDATE/i', '', $sqliteSql);
-    $sqliteSql = preg_replace('/COMMENT \'.*?\'/i', '', $sqliteSql);
-
-    $db->exec($sqliteSql);
+    require_once __DIR__ . '/../init_db.php';
+    initDatabase();
     echo "  -> Schema created successfully.\n\n";
 
     // 2. Register User Chain (13 Users to test full 12 levels)

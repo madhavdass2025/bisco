@@ -68,9 +68,14 @@ class WalletToEpinEngine {
                 }
             } while (empty($pinCode));
 
-            // Deduct wallet balance
-            $stmtDeduct = $db->prepare("UPDATE users SET wallet_balance = wallet_balance - ? WHERE id = ?");
-            $stmtDeduct->execute([$valueAmount, $userId]);
+            // Deduct wallet balance with atomic balance check
+            $stmtDeduct = $db->prepare("UPDATE users SET wallet_balance = wallet_balance - ? WHERE id = ? AND wallet_balance >= ?");
+            $stmtDeduct->execute([$valueAmount, $userId, $valueAmount]);
+
+            if ($stmtDeduct->rowCount() === 0) {
+                $db->rollBack();
+                return ['success' => false, 'message' => 'Insufficient wallet balance or concurrent update conflict.'];
+            }
 
             // Insert ePIN record
             $stmtInsert = $db->prepare("

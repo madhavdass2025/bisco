@@ -6,8 +6,14 @@ Auth::requireLogin();
 
 $user = Auth::user();
 
-// Check admin privileges or allow access for management
-// For ease of administration, user ID 1 or is_admin flag can access
+$user = Auth::user();
+
+// Strict Admin Privileges Check
+if (!$user || (empty($user['is_admin']) && (int)$user['id'] !== 1)) {
+    header('Location: ../dashboard.php');
+    exit('Access Denied: Admin Privileges Required.');
+}
+
 $db = Database::getConnection();
 
 $successMsg = '';

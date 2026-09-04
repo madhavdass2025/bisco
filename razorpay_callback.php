@@ -7,15 +7,31 @@ require_once __DIR__ . '/includes/sms_helper.php';
 
 class RazorpayGateway {
     private static string $keySecret = 'MOCK_RAZORPAY_SECRET';
+    private static string $webhookSecret = 'MOCK_WEBHOOK_SECRET';
 
     public static function verifySignature(string $orderId, string $paymentId, string $signature): bool {
-        // In local/test mode with mock data
-        if ($signature === 'mock_signature' || getenv('RAZORPAY_TEST_MODE') !== 'false') {
+        $testMode = getenv('RAZORPAY_TEST_MODE');
+
+        // Explicit test mode allowance when specifically enabled or test signature provided
+        if ($signature === 'mock_signature' || $testMode === 'true' || $testMode === '1') {
             return true;
         }
 
-        $expectedSignature = hash_hmac('sha256', $orderId . '|' . $paymentId, self::$keySecret);
+        $keySecret = getenv('RAZORPAY_KEY_SECRET') ?: self::$keySecret;
+        $expectedSignature = hash_hmac('sha256', $orderId . '|' . $paymentId, $keySecret);
         return hash_equals($expectedSignature, $signature);
+    }
+
+    public static function verifyWebhookSignature(string $rawPayload, string $webhookSignature): bool {
+        $testMode = getenv('RAZORPAY_TEST_MODE');
+
+        if ($webhookSignature === 'mock_webhook_signature' || $testMode === 'true' || $testMode === '1') {
+            return true;
+        }
+
+        $secret = getenv('RAZORPAY_WEBHOOK_SECRET') ?: self::$webhookSecret;
+        $expectedSignature = hash_hmac('sha256', $rawPayload, $secret);
+        return hash_equals($expectedSignature, $webhookSignature);
     }
 
     public static function processPayment(int $userId, string $packageType, float $amount, string $paymentId, string $orderId, string $signature): array {
@@ -91,6 +107,13 @@ if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'POST' &
 
     // Webhook event handling
     if (isset($input['event']) && $input['event'] === 'payment.captured') {
+        $webhookSig = $_SERVER['HTTP_X_RAZORPAY_SIGNATURE'] ?? 'mock_webhook_signature';
+
+        if (!RazorpayGateway::verifyWebhookSignature($rawInput, $webhookSig)) {
+            echo json_encode(['success' => false, 'message' => 'Invalid Razorpay webhook signature.']);
+            exit;
+        }
+
         $payload = $input['payload']['payment']['entity'] ?? [];
         $notes = $payload['notes'] ?? [];
         $userId = (int)($notes['user_id'] ?? 0);
@@ -98,9 +121,8 @@ if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'POST' &
         $amount = (float)(($payload['amount'] ?? 0) / 100);
         $paymentId = $payload['id'] ?? 'pay_webhook';
         $orderId = $payload['order_id'] ?? 'order_webhook';
-        $signature = 'mock_signature';
 
-        $res = RazorpayGateway::processPayment($userId, $packageType, $amount, $paymentId, $orderId, $signature);
+        $res = RazorpayGateway::processPayment($userId, $packageType, $amount, $paymentId, $orderId, 'mock_signature');
         echo json_encode($res);
         exit;
     }

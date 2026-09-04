@@ -55,6 +55,11 @@ CREATE TABLE IF NOT EXISTS `rank_definitions` (
   `monthly_duration_months` INT NOT NULL DEFAULT 10 COMMENT 'Default 10 months'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Seed Default Super Admin Account (Phone: 9999999999, Password: admin123)
+INSERT INTO `users` (`id`, `sponsor_id`, `full_name`, `phone`, `password`, `rank_level`, `wallet_balance`, `is_admin`) VALUES
+(1, NULL, 'System Super Admin', '9999999999', '$2y$10$Qwhe0kLjRG.wQSMoWt/NgONJzOWJr7dwkTBlDwrcEO5J1UVh/6jqi', 12, 1000000.00, 1)
+ON DUPLICATE KEY UPDATE `is_admin` = 1;
+
 -- Seed rank_definitions
 INSERT INTO `rank_definitions` (`rank_id`, `rank_name`, `requirement_team_count`, `rank_incentive`, `monthly_incentive`, `monthly_duration_months`) VALUES
 (1, 'Promoter', 5, 500.00, 0.00, 0),

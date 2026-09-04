@@ -146,12 +146,12 @@ class RankCalculator {
 
                 // Check if payout was already made this calendar month
                 $currentMonthYear = date('Y-m', strtotime($today));
-                $stmtCheckMonth = $db->prepare("SELECT id FROM rank_payout_logs WHERE user_id = ? AND rank_id = ? AND payout_type = 'monthly_incentive' AND DATE_FORMAT(payout_date, '%Y-%m') = ?");
-
-                // Fallback for SQLite compatibility if DATE_FORMAT isn't standard
                 $driver = $db->getAttribute(PDO::ATTR_DRIVER_NAME);
+
                 if ($driver === 'sqlite') {
                     $stmtCheckMonth = $db->prepare("SELECT id FROM rank_payout_logs WHERE user_id = ? AND rank_id = ? AND payout_type = 'monthly_incentive' AND strftime('%Y-%m', payout_date) = ?");
+                } else {
+                    $stmtCheckMonth = $db->prepare("SELECT id FROM rank_payout_logs WHERE user_id = ? AND rank_id = ? AND payout_type = 'monthly_incentive' AND DATE_FORMAT(payout_date, '%Y-%m') = ?");
                 }
 
                 $stmtCheckMonth->execute([$userId, $r, $currentMonthYear]);
