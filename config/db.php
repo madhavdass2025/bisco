@@ -15,13 +15,14 @@ class Database {
 
             if ($driver === 'sqlite') {
                 $dbPath = getenv('SQLITE_PATH') ?: __DIR__ . '/../database.sqlite';
-                $isNew = !file_exists($dbPath);
                 self::$instance = new PDO('sqlite:' . $dbPath);
                 self::$instance->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
                 self::$instance->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
                 self::$instance->exec("PRAGMA foreign_keys = ON;");
 
-                if ($isNew) {
+                // Check if users table exists in SQLite database; if not, initialize schema
+                $stmtCheck = self::$instance->query("SELECT name FROM sqlite_master WHERE type='table' AND name='users'");
+                if (!$stmtCheck->fetch()) {
                     require_once __DIR__ . '/../init_db.php';
                     initDatabase();
                 }
