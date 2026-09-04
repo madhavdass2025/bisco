@@ -11,23 +11,11 @@ class Database {
 
     public static function getConnection(): PDO {
         if (self::$instance === null) {
-            $driver = getenv('DB_DRIVER') ?: 'sqlite';
+            $driver = getenv('DB_DRIVER') ?: 'mysql';
 
-            if ($driver === 'sqlite') {
-                $dbPath = getenv('SQLITE_PATH') ?: __DIR__ . '/../database.sqlite';
-                self::$instance = new PDO('sqlite:' . $dbPath);
-                self::$instance->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-                self::$instance->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-                self::$instance->exec("PRAGMA foreign_keys = ON;");
-
-                // Check if users table exists in SQLite database; if not, initialize schema
-                $stmtCheck = self::$instance->query("SELECT name FROM sqlite_master WHERE type='table' AND name='users'");
-                if (!$stmtCheck->fetch()) {
-                    require_once __DIR__ . '/../init_db.php';
-                    initDatabase();
-                }
-            } else {
-                $host = getenv('DB_HOST') ?: '127.0.0.1';
+            if ($driver === 'mysql') {
+                // Default MySQL Database Configuration (Update for your hosting server/cPanel)
+                $host = getenv('DB_HOST') ?: 'localhost';
                 $port = getenv('DB_PORT') ?: '3306';
                 $dbname = getenv('DB_NAME') ?: 'powernet_bisco';
                 $username = getenv('DB_USER') ?: 'root';
@@ -41,11 +29,29 @@ class Database {
                         PDO::ATTR_EMULATE_PREPARES => false
                     ]);
                 } catch (PDOException $e) {
-                    die("<div style='padding:20px; font-family:sans-serif; color:#721c24; background-color:#f8d7da; border:1px solid #f5c6cb; border-radius:5px; margin:20px;'>".
-                        "<h3>Database Connection Error</h3>".
-                        "<p>Unable to connect to MySQL database: <strong>" . htmlspecialchars($e->getMessage()) . "</strong></p>".
-                        "<p>Please verify your MySQL credentials in <code>config/db.php</code> or environment variables, or import <code>schema.sql</code> into phpMyAdmin on your hosting server.</p>".
+                    die("<div style='padding:25px; font-family:Arial, sans-serif; color:#721c24; background-color:#f8d7da; border:1px solid #f5c6cb; border-radius:8px; max-width:700px; margin:40px auto; shadow: 0 4px 10px rgba(0,0,0,0.1);'>".
+                        "<h2 style='margin-top:0;'>MySQL Database Connection Error</h2>".
+                        "<p>Unable to connect to your MySQL database: <strong>" . htmlspecialchars($e->getMessage()) . "</strong></p>".
+                        "<hr style='border:0; border-top:1px solid #f5c6cb; margin:15px 0;'>".
+                        "<h4>How to fix on cPanel / Live Server:</h4>".
+                        "<ol style='line-height:1.6;'>".
+                        "<li>Open <code>config/db.php</code> in File Manager and enter your MySQL <b>Database Name</b>, <b>Username</b>, and <b>Password</b>.</li>".
+                        "<li>Go to <b>cPanel -> phpMyAdmin</b>, select database <code>" . htmlspecialchars($dbname) . "</code>, and import <code>schema.sql</code>.</li>".
+                        "</ol>".
                         "</div>");
+                }
+            } else {
+                // SQLite fallback mode for CLI testing
+                $dbPath = getenv('SQLITE_PATH') ?: __DIR__ . '/../database.sqlite';
+                self::$instance = new PDO('sqlite:' . $dbPath);
+                self::$instance->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                self::$instance->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+                self::$instance->exec("PRAGMA foreign_keys = ON;");
+
+                $stmtCheck = self::$instance->query("SELECT name FROM sqlite_master WHERE type='table' AND name='users'");
+                if (!$stmtCheck->fetch()) {
+                    require_once __DIR__ . '/../init_db.php';
+                    initDatabase();
                 }
             }
         }
