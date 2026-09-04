@@ -1,6 +1,11 @@
 <?php
 // config/db.php
 
+// Display errors for debugging on live/shared host servers
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 class Database {
     private static ?PDO $instance = null;
 
@@ -28,11 +33,19 @@ class Database {
                 $password = getenv('DB_PASS') ?: '';
 
                 $dsn = "mysql:host={$host};port={$port};dbname={$dbname};charset=utf8mb4";
-                self::$instance = new PDO($dsn, $username, $password, [
-                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                    PDO::ATTR_EMULATE_PREPARES => false
-                ]);
+                try {
+                    self::$instance = new PDO($dsn, $username, $password, [
+                        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                        PDO::ATTR_EMULATE_PREPARES => false
+                    ]);
+                } catch (PDOException $e) {
+                    die("<div style='padding:20px; font-family:sans-serif; color:#721c24; background-color:#f8d7da; border:1px solid #f5c6cb; border-radius:5px; margin:20px;'>".
+                        "<h3>Database Connection Error</h3>".
+                        "<p>Unable to connect to MySQL database: <strong>" . htmlspecialchars($e->getMessage()) . "</strong></p>".
+                        "<p>Please verify your MySQL credentials in <code>config/db.php</code> or environment variables, or import <code>schema.sql</code> into phpMyAdmin on your hosting server.</p>".
+                        "</div>");
+                }
             }
         }
         return self::$instance;
