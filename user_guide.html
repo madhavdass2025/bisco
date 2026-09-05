@@ -3,171 +3,515 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>POWERNET ASSOCIATE - BISCO | Official User Guide</title>
+    <title>POWERNET ASSOCIATE - BISCO | User Guide & Operational Manual</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         :root {
-            --primary-green: #006837;
-            --secondary-green: #39B54A;
-            --accent-gold: #F7941E;
-        }
-        body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            color: #2b2b2b;
-            background-color: #f8f9fa;
-            line-height: 1.6;
-        }
-        .page-header {
-            background: linear-gradient(135deg, var(--primary-green) 0%, #004222 100%);
-            color: white;
-            padding: 40px 0;
-            border-bottom: 5px solid var(--accent-gold);
-            margin-bottom: 30px;
-        }
-        .brand-badge {
-            background-color: var(--accent-gold);
-            color: #000;
-            font-weight: bold;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-        }
-        .section-card {
-            background: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            padding: 25px;
-            margin-bottom: 25px;
-            border-left: 5px solid var(--primary-green);
-        }
-        .section-title {
-            color: var(--primary-green);
-            font-weight: 700;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-        }
-        .section-title i {
-            margin-right: 12px;
-            color: var(--accent-gold);
-        }
-        .step-number {
-            background-color: var(--primary-green);
-            color: white;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 14px;
-            margin-right: 10px;
-        }
-        .table-custom th {
-            background-color: var(--primary-green);
-            color: white;
-        }
-        .btn-print {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 1000;
-            background-color: var(--accent-gold);
-            color: #000;
-            font-weight: bold;
-            border: none;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            padding: 12px 24px;
-            border-radius: 30px;
-        }
-        .btn-print:hover {
-            background-color: #e08310;
-            color: #000;
+            --primary-color: #006837;
+            --secondary-color: #39B54A;
+            --accent-color: #F7941E;
+            --text-dark: #2d3748;
+            --text-muted: #718096;
+            --bg-light: #f8fafc;
+            --border-color: #e2e8f0;
         }
 
-        /* PDF / Print Styles */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            color: var(--text-dark);
+            background-color: var(--bg-light);
+            line-height: 1.6;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        /* Minimalist Header */
+        .doc-header {
+            background-color: #ffffff;
+            border-bottom: 2px solid var(--border-color);
+            padding: 35px 0 25px 0;
+            margin-bottom: 30px;
+        }
+
+        .brand-badge {
+            display: inline-block;
+            background-color: rgba(0, 104, 55, 0.08);
+            color: var(--primary-color);
+            font-weight: 600;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .doc-title {
+            color: var(--primary-color);
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        /* Card / Section Styling */
+        .guide-card {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 28px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            padding-bottom: 14px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .section-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 8px;
+            background-color: rgba(0, 104, 55, 0.08);
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            margin-right: 14px;
+            flex-shrink: 0;
+        }
+
+        .section-title {
+            color: var(--primary-color);
+            font-weight: 700;
+            font-size: 1.35rem;
+            margin: 0;
+        }
+
+        /* UI Flow Step Cards */
+        .flow-step {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .flow-step:last-child {
+            margin-bottom: 0;
+        }
+
+        .step-pill {
+            background-color: var(--primary-color);
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 0.8rem;
+            min-width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 14px;
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+
+        .step-content {
+            flex-grow: 1;
+        }
+
+        .step-title {
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 2px;
+        }
+
+        .step-desc {
+            color: var(--text-muted);
+            font-size: 0.92rem;
+            margin: 0;
+        }
+
+        /* Highlights & Badges */
+        .ui-tag {
+            background-color: #f1f5f9;
+            color: #334155;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: 1px solid #cbd5e1;
+            font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        }
+
+        .accent-box {
+            background-color: #fffbf5;
+            border: 1px solid #fde68a;
+            border-left: 4px solid var(--accent-color);
+            border-radius: 6px;
+            padding: 14px 18px;
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+
+        .info-box {
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-left: 4px solid var(--secondary-color);
+            border-radius: 6px;
+            padding: 14px 18px;
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+
+        /* Clean Table Styling */
+        .minimal-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+            font-size: 0.9rem;
+        }
+
+        .minimal-table th {
+            background-color: #f8fafc;
+            color: var(--text-dark);
+            font-weight: 600;
+            padding: 10px 14px;
+            text-align: left;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .minimal-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        /* Floating Print Button */
+        .btn-print {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 1000;
+            background-color: var(--primary-color);
+            color: #ffffff;
+            font-weight: 600;
+            border: none;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+            padding: 12px 22px;
+            border-radius: 30px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-print:hover {
+            background-color: #004d28;
+            color: #ffffff;
+            transform: translateY(-2px);
+        }
+
+        /* PDF / Print Optimization */
         @media print {
-            .btn-print, .no-print {
+            .no-print {
                 display: none !important;
             }
             body {
-                background-color: #ffffff;
-                font-size: 12pt;
+                background-color: #ffffff !important;
+                color: #000000 !important;
+                font-size: 11pt;
             }
-            .section-card {
-                box-shadow: none;
-                border: 1px solid #ddd;
-                border-left: 5px solid var(--primary-green);
+            .doc-header {
+                padding: 10px 0 15px 0;
+                margin-bottom: 20px;
+            }
+            .guide-card {
+                box-shadow: none !important;
+                border: 1px solid #cbd5e1 !important;
+                padding: 18px !important;
+                margin-bottom: 18px !important;
                 page-break-inside: avoid;
+                break-inside: avoid;
             }
-            .page-header {
-                padding: 20px 0;
+            .accent-box, .info-box {
+                page-break-inside: avoid;
+                break-inside: avoid;
             }
         }
     </style>
 </head>
 <body>
 
+<!-- Print Button -->
 <button onclick="window.print()" class="btn btn-print no-print">
-    <i class="bi bi-printer-fill me-2"></i>Print / Save as PDF
+    <i class="bi bi-printer-fill me-2"></i> Save / Print PDF
 </button>
 
-<header class="page-header text-center">
+<!-- Minimalist Document Header -->
+<header class="doc-header">
     <div class="container">
-        <h1 class="fw-bold mb-2">POWERNET ASSOCIATE</h1>
-        <div class="mb-3"><span class="brand-badge">BISCO Network Operations Portal</span></div>
-        <p class="lead mb-0 text-white-50">Official Member & Administrator Operational Guide</p>
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <span class="brand-badge mb-2">BISCO Network Portal</span>
+                <h2 class="doc-title mb-1">POWERNET ASSOCIATE</h2>
+                <p class="text-muted mb-0 small">User Guide & Operational Manual — Non-Technical Overview</p>
+            </div>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                <span class="badge bg-light text-dark border px-3 py-2">
+                    <i class="bi bi-shield-check text-success me-1"></i> Official System Guide
+                </span>
+            </div>
+        </div>
     </div>
 </header>
 
-<div class="container my-4">
+<div class="container mb-5">
 
-    <!-- Quick Access Credentials -->
-    <div class="section-card">
-        <h4 class="section-title"><i class="bi bi-key-fill"></i> System Access Credentials</h4>
-        <div class="row g-3">
+    <!-- Quick Access Reference -->
+    <div class="guide-card">
+        <div class="section-header">
+            <div class="section-icon"><i class="bi bi-key-fill"></i></div>
+            <h3 class="section-title">1. Getting Started & Access</h3>
+        </div>
+        <div class="row g-4">
             <div class="col-md-6">
-                <div class="p-3 border rounded bg-light">
-                    <h6 class="fw-bold text-dark mb-1"><i class="bi bi-person-badge text-primary me-2"></i>Default Super Admin Account</h6>
-                    <ul class="list-unstyled mb-0 small">
-                        <li><strong>Phone:</strong> <code>9999999999</code></li>
-                        <li><strong>Password:</strong> <code>admin123</code></li>
-                        <li><strong>Access:</strong> Full Admin Privileges, Business Schemes Manager</li>
+                <div class="p-3 bg-light rounded border">
+                    <h6 class="fw-bold mb-2"><i class="bi bi-person-fill-lock text-primary me-2"></i>Administrator Sign In</h6>
+                    <ul class="list-unstyled mb-0 small text-muted">
+                        <li class="mb-1"><strong>Login Page:</strong> <span class="ui-tag">login.php</span></li>
+                        <li class="mb-1"><strong>Admin Mobile:</strong> <span class="ui-tag">9999999999</span></li>
+                        <li><strong>Admin Password:</strong> <span class="ui-tag">admin123</span></li>
                     </ul>
                 </div>
             </div>
             <div class="col-md-6">
-                <div class="p-3 border rounded bg-light">
-                    <h6 class="fw-bold text-dark mb-1"><i class="bi bi-person-plus text-success me-2"></i>New Member Registration</h6>
-                    <p class="small text-muted mb-0">Anyone can sign up directly at <code>register.php</code> using their mobile number and an optional Sponsor ID.</p>
+                <div class="p-3 bg-light rounded border">
+                    <h6 class="fw-bold mb-2"><i class="bi bi-person-plus-fill text-success me-2"></i>New Member Registration</h6>
+                    <p class="small text-muted mb-0">New members can self-register at <span class="ui-tag">register.php</span> by providing their mobile number, password, full name, and optional Sponsor ID.</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 1. Customer Operations -->
-    <div class="section-card">
-        <h4 class="section-title"><i class="bi bi-people-fill"></i> 1. Customer Operations</h4>
+    <!-- ePIN Generation Comparison (Both Customer & Admin Sides) -->
+    <div class="guide-card">
+        <div class="section-header">
+            <div class="section-icon"><i class="bi bi-ticket-perforated-fill"></i></div>
+            <h3 class="section-title">2. Electronic PIN (ePIN) Generation</h3>
+        </div>
+        <p class="text-muted small mb-4">An ePIN is a secure 16-character code used to activate subscription packages instantly. ePINs can be generated by members using earned commissions or by administrators in batch.</p>
 
-        <h5 class="fw-bold mt-3 mb-2"><span class="step-number">A</span> Account Registration & Login</h5>
-        <ol class="mb-3">
-            <li>Navigate to <code>register.php</code>.</li>
-            <li>Enter your <strong>Full Name</strong>, <strong>10-Digit Mobile Phone Number</strong>, <strong>Password</strong>, and optional <strong>Sponsor ID</strong> (e.g., <code>1</code> for root admin).</li>
-            <li>After registration, log in using your phone number and password on <code>login.php</code>.</li>
-        </ol>
+        <div class="row g-4">
+            <!-- Customer Side -->
+            <div class="col-md-6">
+                <div class="p-3 rounded border h-100" style="background-color: #fafafa;">
+                    <div class="d-flex align-items-center mb-3">
+                        <span class="badge bg-success me-2">CUSTOMER SIDE</span>
+                        <h6 class="fw-bold mb-0">Earning Wallet to ePIN</h6>
+                    </div>
+                    <p class="small text-muted mb-3">Members can convert their earned commissions into ePINs to register downline members or gift packages.</p>
 
-        <h5 class="fw-bold mt-4 mb-2"><span class="step-number">B</span> Subscription Package Purchase</h5>
-        <p class="mb-2">Members can buy or upgrade subscriptions directly from the Dashboard under <strong>Buy Package</strong>:</p>
+                    <div class="flow-step">
+                        <div class="step-pill">1</div>
+                        <div class="step-content">
+                            <div class="step-title">Open Member Dashboard</div>
+                            <div class="step-desc">Log in and scroll to the <span class="ui-tag">Generate ePIN</span> section.</div>
+                        </div>
+                    </div>
+
+                    <div class="flow-step">
+                        <div class="step-pill">2</div>
+                        <div class="step-content">
+                            <div class="step-title">Choose Package</div>
+                            <div class="step-desc">Select desired voucher tier (e.g., Voucher 300 or Voucher 600).</div>
+                        </div>
+                    </div>
+
+                    <div class="flow-step">
+                        <div class="step-pill">3</div>
+                        <div class="step-content">
+                            <div class="step-title">Generate PIN</div>
+                            <div class="step-desc">Click <span class="ui-tag">Generate ePIN Now</span>. Cost is deducted from your wallet balance.</div>
+                        </div>
+                    </div>
+
+                    <div class="flow-step">
+                        <div class="step-pill">4</div>
+                        <div class="step-content">
+                            <div class="step-title">Receive Code</div>
+                            <div class="step-desc">A unique 16-digit code appears on screen and is sent via SMS.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Side -->
+            <div class="col-md-6">
+                <div class="p-3 rounded border h-100" style="background-color: #fafafa;">
+                    <div class="d-flex align-items-center mb-3">
+                        <span class="badge bg-primary me-2">ADMIN SIDE</span>
+                        <h6 class="fw-bold mb-0">Batch ePIN Generator</h6>
+                    </div>
+                    <p class="small text-muted mb-3">Admins can generate free ePIN batches for promotional offline sales or corporate distribution.</p>
+
+                    <div class="flow-step">
+                        <div class="step-pill">1</div>
+                        <div class="step-content">
+                            <div class="step-title">Access Schemes Portal</div>
+                            <div class="step-desc">Navigate to <span class="ui-tag">admin/schemes.php</span> via the admin menu.</div>
+                        </div>
+                    </div>
+
+                    <div class="flow-step">
+                        <div class="step-pill">2</div>
+                        <div class="step-content">
+                            <div class="step-title">Select Quantity & Package</div>
+                            <div class="step-desc">Choose package type and enter quantity (e.g. 10 or 50 PINs).</div>
+                        </div>
+                    </div>
+
+                    <div class="flow-step">
+                        <div class="step-pill">3</div>
+                        <div class="step-content">
+                            <div class="step-title">Click Generate Batch</div>
+                            <div class="step-desc">Click <span class="ui-tag">Generate ePIN Batch</span>. No wallet balance is required.</div>
+                        </div>
+                    </div>
+
+                    <div class="flow-step">
+                        <div class="step-pill">4</div>
+                        <div class="step-content">
+                            <div class="step-title">Distribute PINs</div>
+                            <div class="step-desc">View generated PIN list and copy or print them for distribution.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-box">
+            <i class="bi bi-lightbulb-fill text-success me-2"></i><strong>Note:</strong> All generated ePINs remain valid until redeemed. Once used, they are marked as redeemed and linked to the activated member account.
+        </div>
+    </div>
+
+    <!-- Account & User Activation Modes -->
+    <div class="guide-card">
+        <div class="section-header">
+            <div class="section-icon"><i class="bi bi-check-circle-fill"></i></div>
+            <h3 class="section-title">3. Account & Subscription Activation Methods</h3>
+        </div>
+        <p class="text-muted small mb-4">Members can activate their accounts and packages using three simple methods based on their payment preference:</p>
+
+        <div class="row g-3">
+            <!-- Method A -->
+            <div class="col-md-4">
+                <div class="p-3 border rounded h-100 bg-light">
+                    <h6 class="fw-bold text-dark"><i class="bi bi-credit-card text-primary me-2"></i>A. Online Gateway</h6>
+                    <span class="badge bg-info text-dark mb-2">Automated Instant</span>
+                    <ol class="small text-muted ps-3 mb-0">
+                        <li class="mb-2">Go to <span class="ui-tag">Buy Package</span> on Dashboard.</li>
+                        <li class="mb-2">Select desired subscription package.</li>
+                        <li class="mb-2">Choose **Razorpay Payment Gateway**.</li>
+                        <li>Pay via UPI (GPay/PhonePe), Credit Card, or NetBanking. Activation is instant.</li>
+                    </ol>
+                </div>
+            </div>
+
+            <!-- Method B -->
+            <div class="col-md-4">
+                <div class="p-3 border rounded h-100 bg-light">
+                    <h6 class="fw-bold text-dark"><i class="bi bi-ticket-detailed text-success me-2"></i>B. ePIN Redemption</h6>
+                    <span class="badge bg-success mb-2">Voucher Based</span>
+                    <ol class="small text-muted ps-3 mb-0">
+                        <li class="mb-2">Obtain a 16-character ePIN code.</li>
+                        <li class="mb-2">Go to <span class="ui-tag">Redeem ePIN</span> section.</li>
+                        <li class="mb-2">Paste code into input box.</li>
+                        <li>Click <span class="ui-tag">Proceed & Activate</span>. Package activates immediately.</li>
+                    </ol>
+                </div>
+            </div>
+
+            <!-- Method C -->
+            <div class="col-md-4">
+                <div class="p-3 border rounded h-100 bg-light">
+                    <h6 class="fw-bold text-dark"><i class="bi bi-bank text-warning me-2"></i>C. Admin Manual Activation</h6>
+                    <span class="badge bg-secondary mb-2">Bank / Offline</span>
+                    <ol class="small text-muted ps-3 mb-0">
+                        <li class="mb-2">Member pays company offline or via direct bank transfer.</li>
+                        <li class="mb-2">Admin opens <span class="ui-tag">admin/schemes.php</span>.</li>
+                        <li class="mb-2">Enter member's registered mobile number & select package.</li>
+                        <li>Click <span class="ui-tag">Activate Subscription Now</span>.</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <div class="accent-box">
+            <i class="bi bi-diagram-3-fill text-warning me-2"></i><strong>Affiliate Distribution Trigger:</strong> Regardless of activation method, as soon as a package is activated, 12-level affiliate commissions are calculated and credited instantly up the sponsor hierarchy.
+        </div>
+    </div>
+
+    <!-- Platform Features -->
+    <div class="guide-card">
+        <div class="section-header">
+            <div class="section-icon"><i class="bi bi-grid-fill"></i></div>
+            <h3 class="section-title">4. Key Member & Admin Platform Features</h3>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-6">
+                <h6 class="fw-bold"><i class="bi bi-diagram-2 text-primary me-2"></i>12-Level Downline Hierarchy Tree</h6>
+                <p class="small text-muted mb-2">Members can view their entire multi-tier team downline structure visually on the dashboard up to 12 levels deep.</p>
+                <ul class="small text-muted">
+                    <li>Click on level nodes to expand child sub-teams.</li>
+                    <li>Track direct referrals versus total team growth.</li>
+                </ul>
+            </div>
+
+            <div class="col-md-6">
+                <h6 class="fw-bold"><i class="bi bi-trophy-fill text-warning me-2"></i>Rank Progression & Rewards</h6>
+                <p class="small text-muted mb-2">Track real-time qualification progress across 12 rank tiers from <strong>Promoter</strong> to <strong>Crown Ambassador</strong>.</p>
+                <ul class="small text-muted">
+                    <li>Visual progress bar shows remaining downlines required.</li>
+                    <li>Unlocks one-time cash bonuses & recurring 10-month payouts.</li>
+                </ul>
+            </div>
+
+            <div class="col-md-6">
+                <h6 class="fw-bold"><i class="bi bi-wallet2 text-success me-2"></i>Earning Wallet & Financial Ledger</h6>
+                <p class="small text-muted mb-2">Complete history of all commission earnings, bonus credits, and ePIN generation transactions.</p>
+                <ul class="small text-muted">
+                    <li>Real-time balance display.</li>
+                    <li>Transparent line-by-line transaction logs.</li>
+                </ul>
+            </div>
+
+            <div class="col-md-6">
+                <h6 class="fw-bold"><i class="bi bi-sliders text-danger me-2"></i>Admin Business Schemes Manager</h6>
+                <p class="small text-muted mb-2">Super Admins can dynamically adjust platform business rules without technical code changes.</p>
+                <ul class="small text-muted">
+                    <li>Edit 12-level commission point matrices.</li>
+                    <li>Modify rank requirements, cash bonuses, and monthly payouts.</li>
+                    <li>Create new business scheme tiers anytime.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overview Table of Packages -->
+    <div class="guide-card">
+        <div class="section-header">
+            <div class="section-icon"><i class="bi bi-box-seam-fill"></i></div>
+            <h3 class="section-title">5. Subscription Packages Summary</h3>
+        </div>
+
         <div class="table-responsive">
-            <table class="table table-bordered table-custom text-center align-middle small">
+            <table class="minimal-table">
                 <thead>
                     <tr>
-                        <th>Package Type</th>
-                        <th>Amount (₹)</th>
+                        <th>Package Name</th>
+                        <th>Price (₹)</th>
                         <th>Classification</th>
-                        <th>Monthly Return</th>
+                        <th>Benefits / Monthly Return</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -175,110 +519,41 @@
                         <td><strong>Voucher 600</strong></td>
                         <td>₹600.00</td>
                         <td>Classic Tier</td>
-                        <td>-</td>
+                        <td>Highest level commission point distribution</td>
                     </tr>
                     <tr>
                         <td><strong>Voucher 300</strong></td>
                         <td>₹300.00</td>
                         <td>Basic Tier</td>
-                        <td>-</td>
+                        <td>Standard level commission point distribution</td>
                     </tr>
                     <tr>
                         <td><strong>Smart Recharge</strong></td>
                         <td>₹100.00</td>
                         <td>Team Tier</td>
-                        <td>-</td>
+                        <td>Affordable team activation package</td>
                     </tr>
                     <tr>
                         <td><strong>SIP 600</strong></td>
                         <td>₹600.00</td>
                         <td>Classic SIP</td>
-                        <td>₹100 / Month x 10 Mos</td>
+                        <td>₹100 / month return for 10 consecutive months</td>
                     </tr>
                     <tr>
                         <td><strong>SIP 300</strong></td>
                         <td>₹300.00</td>
                         <td>Basic SIP</td>
-                        <td>₹50 / Month x 10 Mos</td>
+                        <td>₹50 / month return for 10 consecutive months</td>
                     </tr>
                 </tbody>
             </table>
         </div>
-        <p class="small text-muted"><strong>Payment Gateways:</strong> You can pay online via <strong>Razorpay</strong> (UPI, Credit/Debit Card, NetBanking) or redeem an <strong>ePIN Code</strong>.</p>
-
-        <h5 class="fw-bold mt-4 mb-2"><span class="step-number">C</span> Interactive 12-Level Network Tree & Rank Progress</h5>
-        <ul>
-            <li><strong>Interactive Network Tree:</strong> View your entire downline hierarchy up to 12 levels deep on the Dashboard.</li>
-            <li><strong>Rank Progress Bar:</strong> Monitor your real-time qualification progress percentage towards achieving your next rank tier.</li>
-        </ul>
-    </div>
-
-    <!-- 2. ePIN Operations -->
-    <div class="section-card">
-        <h4 class="section-title"><i class="bi bi-ticket-perforated-fill"></i> 2. Electronic PIN (ePIN) Operations</h4>
-
-        <h5 class="fw-bold mt-3 mb-2"><span class="step-number">A</span> Earning Wallet to ePIN Generator Engine</h5>
-        <p>Active members can convert their accrued commission earnings into reusable ePINs to register or upgrade new downline members:</p>
-        <ol>
-            <li>Go to the <strong>Earning Wallet to ePIN Generator</strong> section on the Dashboard.</li>
-            <li>Select the package voucher type (e.g., <code>Voucher 300</code>).</li>
-            <li>Click <strong>Generate ePIN Now</strong>.</li>
-            <li>The package amount is deducted automatically from your <code>wallet_balance</code>, and a unique 16-character code (e.g., <code>PN3A8F2K910L4M5N</code>) is generated and sent via SMS.</li>
-        </ol>
-
-        <h5 class="fw-bold mt-4 mb-2"><span class="step-number">B</span> Redeeming an ePIN</h5>
-        <ol>
-            <li>Select <strong>Electronic PIN (ePIN)</strong> under payment gateway options when purchasing a package.</li>
-            <li>Enter the 16-character ePIN code and click <strong>Proceed & Activate</strong>.</li>
-            <li>The subscription package activates immediately, and 12-level affiliate commissions are distributed up the sponsor chain.</li>
-        </ol>
-    </div>
-
-    <!-- 3. Business Scheme & Rank Rules Management -->
-    <div class="section-card">
-        <h4 class="section-title"><i class="bi bi-sliders"></i> 3. Business Scheme & Compensation Management (Admin)</h4>
-
-        <p>Super Admins can access the <strong>Schemes Manager</strong> (`admin/schemes.php`) directly from the dashboard navbar.</p>
-
-        <h5 class="fw-bold mt-3 mb-2"><span class="step-number">A</span> Editing Existing Affiliate Commission Matrices</h5>
-        <ol>
-            <li>Click on the <strong>12-Level Affiliate Commission Matrix</strong> tab.</li>
-            <li>Adjust the <strong>Classic Points</strong>, <strong>Basic Points</strong>, or <strong>Team Points</strong> allocated for any sponsor level (Level 1 through 12).</li>
-            <li>Click <strong>Save Level</strong> to apply the changes immediately.</li>
-        </ol>
-
-        <h5 class="fw-bold mt-4 mb-2"><span class="step-number">B</span> Editing Existing Rank Requirements & Rewards</h5>
-        <ol>
-            <li>Click on the <strong>12-Tier Rank Schemes & Incentives</strong> tab.</li>
-            <li>Edit the <strong>Rank Name</strong>, <strong>Required Downlines</strong>, <strong>One-Time Rank Incentive Bonus (₹)</strong>, <strong>Monthly Incentive (₹)</strong>, or <strong>Duration (Months)</strong>.</li>
-            <li>Click <strong>Save Changes</strong>.</li>
-        </ol>
-
-        <h5 class="fw-bold mt-4 mb-2"><span class="step-number">C</span> Creating New Business Rank Scheme Tiers</h5>
-        <ol>
-            <li>Click the green <strong>Create New Business Rank Scheme</strong> button.</li>
-            <li>Specify the new rank title, required team count, one-time cash bonus, and monthly payout details.</li>
-            <li>Click <strong>Create Scheme Tier</strong> to add the new rank to the system.</li>
-        </ol>
-
-        <h5 class="fw-bold mt-4 mb-2"><span class="step-number">D</span> Admin Manual User Package Activation (Offline / Bank Payment)</h5>
-        <ol>
-            <li>When money is received directly into the company bank account or offline, click <strong>Activate User (Bank Payment Received)</strong> on `admin/schemes.php`.</li>
-            <li>Enter the user's <strong>10-digit registered mobile phone number</strong> and select the package (e.g. <code>Voucher 600</code>).</li>
-            <li>Click <strong>Activate Subscription Now</strong>. The subscription is activated instantly, and 12-level affiliate commissions are calculated and credited up the sponsor tree.</li>
-        </ol>
-
-        <h5 class="fw-bold mt-4 mb-2"><span class="step-number">E</span> Admin Free Batch ePIN Generation</h5>
-        <ol>
-            <li>Click <strong>Generate Admin ePINs</strong> on `admin/schemes.php`.</li>
-            <li>Select the package type and enter the quantity of ePINs to generate (e.g. <code>10</code>).</li>
-            <li>Click <strong>Generate ePIN Batch</strong>. Unique 16-character ePINs are created under `admin` ownership without deducting any user wallet balance.</li>
-        </ol>
     </div>
 
     <!-- Footer -->
-    <footer class="text-center text-muted py-4 small">
-        <p class="mb-0">&copy; POWERNET ASSOCIATE - BISCO. All Rights Reserved.</p>
+    <footer class="text-center text-muted py-3 small">
+        <hr class="mb-3">
+        <p class="mb-0">&copy; POWERNET ASSOCIATE — BISCO Operations. All rights reserved.</p>
     </footer>
 
 </div>
