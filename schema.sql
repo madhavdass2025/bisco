@@ -102,7 +102,7 @@ CREATE TABLE IF NOT EXISTS `subscriptions` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
   `user_id` INT NOT NULL,
   `package_type` ENUM('smart_recharge', 'voucher_300', 'voucher_600', 'sip_300', 'sip_600') NOT NULL,
-  `payment_method` ENUM('razorpay', 'epin', 'wallet') NOT NULL,
+  `payment_method` ENUM('razorpay', 'epin', 'wallet', 'admin') NOT NULL,
   `amount_paid` DECIMAL(10, 2) NOT NULL,
   `monthly_return_amount` DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
   `total_months` INT NOT NULL DEFAULT 1,

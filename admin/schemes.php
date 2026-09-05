@@ -2,9 +2,11 @@
 // admin/schemes.php
 
 require_once __DIR__ . '/../includes/auth.php';
-Auth::requireLogin();
+require_once __DIR__ . '/../calculate_commissions.php';
+require_once __DIR__ . '/../wallet_to_epin.php';
+require_once __DIR__ . '/../includes/sms_helper.php';
 
-$user = Auth::user();
+Auth::requireLogin();
 
 $user = Auth::user();
 
@@ -22,6 +24,110 @@ $errorMsg = '';
 // Handle Form Submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
+
+    // 0. Admin Manual User Package Activation (Bank/Account Payment Received)
+    if ($action === 'admin_activate_user') {
+        $targetUserPhone = trim($_POST['target_phone'] ?? '');
+        $packageType = $_POST['package_type'] ?? '';
+
+        $stmtTarget = $db->prepare("SELECT id, full_name, phone FROM users WHERE phone = ?");
+        $stmtTarget->execute([$targetUserPhone]);
+        $targetUser = $stmtTarget->fetch();
+
+        if (!$targetUser) {
+            $errorMsg = "User with phone number '{$targetUserPhone}' was not found.";
+        } else {
+            $valueAmount = WalletToEpinEngine::getPackageValue($packageType);
+            if ($valueAmount <= 0) {
+                $errorMsg = "Invalid package type selected.";
+            } else {
+                $monthlyReturn = 0.00;
+                $totalMonths = 1;
+
+                if ($packageType === 'sip_300') {
+                    $monthlyReturn = 50.00;
+                    $totalMonths = 10;
+                } elseif ($packageType === 'sip_600') {
+                    $monthlyReturn = 100.00;
+                    $totalMonths = 10;
+                }
+
+                $db->beginTransaction();
+
+                try {
+                    $today = date('Y-m-d');
+                    $stmtSub = $db->prepare("
+                        INSERT INTO subscriptions (user_id, package_type, payment_method, amount_paid, monthly_return_amount, total_months, months_paid, status, start_date)
+                        VALUES (?, ?, 'admin', ?, ?, ?, 0, 'active', ?)
+                    ");
+                    $stmtSub->execute([$targetUser['id'], $packageType, $valueAmount, $monthlyReturn, $totalMonths, $today]);
+                    $subId = (int)$db->lastInsertId();
+
+                    // Execute 12-Level Affiliate Commission Calculation
+                    CommissionCalculator::processSubscriptionCommissions($targetUser['id'], $packageType, $db);
+
+                    $db->commit();
+
+                    SMSHelper::sendSMS(
+                        $targetUser['phone'],
+                        "Dear {$targetUser['full_name']}, your subscription package '{$packageType}' (Rs.{$valueAmount}) has been ACTIVATED by Admin! Account updated."
+                    );
+
+                    $successMsg = "Successfully activated package '{$packageType}' (₹{$valueAmount}) for {$targetUser['full_name']} (#{$targetUser['id']}). 12-Level Commissions distributed!";
+
+                } catch (Exception $e) {
+                    if ($db->inTransaction()) {
+                        $db->rollBack();
+                    }
+                    $errorMsg = "Activation failed: " . $e->getMessage();
+                }
+            }
+        }
+    }
+
+    // 0B. Admin Free Batch ePIN Generation
+    elseif ($action === 'admin_generate_epins') {
+        $packageType = $_POST['package_type'] ?? '';
+        $quantity = max(1, min(100, (int)($_POST['quantity'] ?? 1)));
+        $valueAmount = WalletToEpinEngine::getPackageValue($packageType);
+
+        if ($valueAmount <= 0) {
+            $errorMsg = "Invalid package type selected.";
+        } else {
+            $generatedPins = [];
+            $db->beginTransaction();
+
+            try {
+                for ($k = 0; $k < $quantity; $k++) {
+                    $pinCode = '';
+                    do {
+                        $candidate = WalletToEpinEngine::generatePinCode(16);
+                        $stmtCheck = $db->prepare("SELECT id FROM epins WHERE pin_code = ?");
+                        $stmtCheck->execute([$candidate]);
+                        if (!$stmtCheck->fetch()) {
+                            $pinCode = $candidate;
+                        }
+                    } while (empty($pinCode));
+
+                    $stmtInsert = $db->prepare("
+                        INSERT INTO epins (pin_code, package_type, value_amount, created_by, creator_user_id, status)
+                        VALUES (?, ?, ?, 'admin', ?, 'unused')
+                    ");
+                    $stmtInsert->execute([$pinCode, $packageType, $valueAmount, $user['id']]);
+                    $generatedPins[] = $pinCode;
+                }
+
+                $db->commit();
+                $successMsg = "Admin generated {$quantity} ePINs for package '{$packageType}' (₹{$valueAmount}) successfully!";
+
+            } catch (Exception $e) {
+                if ($db->inTransaction()) {
+                    $db->rollBack();
+                }
+                $errorMsg = "ePIN generation failed: " . $e->getMessage();
+            }
+        }
+    }
 
     // 1. Update Affiliate Payout Rule (Level Matrix)
     if ($action === 'update_payout_rule') {
@@ -159,9 +265,17 @@ $rankDefs = $stmtRanks->fetchAll();
             <h3 class="fw-bold text-brand-primary mb-1"><i class="bi bi-sliders me-2"></i>Business Schemes & Compensation Manager</h3>
             <p class="text-muted mb-0">Create new business rank schemes or edit existing affiliate commission matrices and incentive rules.</p>
         </div>
-        <button class="btn btn-success fw-bold" data-bs-toggle="modal" data-bs-target="#createRankModal">
-            <i class="bi bi-plus-circle-fill me-1"></i> Create New Business Rank Scheme
-        </button>
+        <div>
+            <button class="btn btn-primary fw-bold me-2" data-bs-toggle="modal" data-bs-target="#adminActivateModal">
+                <i class="bi bi-person-check-fill me-1"></i> Activate User (Bank Payment Received)
+            </button>
+            <button class="btn btn-warning text-dark fw-bold me-2" data-bs-toggle="modal" data-bs-target="#adminGenerateEpinModal">
+                <i class="bi bi-ticket-perforated-fill me-1"></i> Generate Admin ePINs
+            </button>
+            <button class="btn btn-success fw-bold" data-bs-toggle="modal" data-bs-target="#createRankModal">
+                <i class="bi bi-plus-circle-fill me-1"></i> Create New Rank Scheme
+            </button>
+        </div>
     </div>
 
     <?php if ($successMsg): ?>
@@ -291,6 +405,79 @@ $rankDefs = $stmtRanks->fetchAll();
             </div>
         </div>
     </div>
+</div>
+
+<!-- Modal 1: Admin Direct User Package Activation -->
+<div class="modal fade" id="adminActivateModal" tabindex="-1" aria-labelledby="adminActivateModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST" action="schemes.php">
+        <input type="hidden" name="action" value="admin_activate_user">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title fw-bold" id="adminActivateModalLabel"><i class="bi bi-person-check-fill me-2"></i>Manual User Package Activation</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <div class="alert alert-info small mb-3">
+                <i class="bi bi-info-circle-fill me-1"></i> Use this when money has been received offline / directly into company bank account to activate user packages and distribute affiliate commissions.
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Target User Phone Number</label>
+                <input type="text" name="target_phone" class="form-control" placeholder="10-digit registered mobile number" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Subscription Package to Activate</label>
+                <select name="package_type" class="form-select" required>
+                    <option value="voucher_600">Voucher 600 (Classic Tier - ₹600)</option>
+                    <option value="voucher_300">Voucher 300 (Basic Tier - ₹300)</option>
+                    <option value="smart_recharge">Smart Recharge (Team Tier - ₹100)</option>
+                    <option value="sip_600">SIP 600 (₹600 | ₹100/mo x 10 Mos)</option>
+                    <option value="sip_300">SIP 300 (₹300 | ₹50/mo x 10 Mos)</option>
+                </select>
+            </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary fw-bold">Activate Subscription Now</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal 2: Admin Free Batch ePIN Generator -->
+<div class="modal fade" id="adminGenerateEpinModal" tabindex="-1" aria-labelledby="adminGenerateEpinModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST" action="schemes.php">
+        <input type="hidden" name="action" value="admin_generate_epins">
+        <div class="modal-header bg-warning text-dark">
+          <h5 class="modal-title fw-bold" id="adminGenerateEpinModalLabel"><i class="bi bi-ticket-perforated-fill me-2"></i>Admin Free Batch ePIN Generator</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Select ePIN Voucher Package</label>
+                <select name="package_type" class="form-select" required>
+                    <option value="voucher_600">Voucher 600 (₹600 Value)</option>
+                    <option value="voucher_300">Voucher 300 (₹300 Value)</option>
+                    <option value="smart_recharge">Smart Recharge (₹100 Value)</option>
+                    <option value="sip_600">SIP 600 (₹600 Value)</option>
+                    <option value="sip_300">SIP 300 (₹300 Value)</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Number of ePINs to Generate</label>
+                <input type="number" name="quantity" class="form-control" value="5" min="1" max="100" required>
+            </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-warning fw-bold text-dark">Generate ePIN Batch</button>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
 
 <!-- Modal: Create New Business Rank Scheme -->
