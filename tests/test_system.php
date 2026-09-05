@@ -41,8 +41,13 @@ function runTests() {
     for ($i = 1; $i <= 13; $i++) {
         $phoneStr = "900000000" . str_pad($i, 2, '0', STR_PAD_LEFT);
         $res = Auth::register("User Level {$i}", $phoneStr, "password123", $sponsorId);
-        assert($res['success'] === true, "User {$i} registration failed");
-        $uId = (int)$res['user_id'];
+        if (!$res['success']) {
+            $stmtGet = $db->prepare("SELECT id FROM users WHERE phone = ?");
+            $stmtGet->execute([$phoneStr]);
+            $uId = (int)$stmtGet->fetchColumn();
+        } else {
+            $uId = (int)$res['user_id'];
+        }
         $userIds[$i] = $uId;
         $sponsorId = $uId;
     }

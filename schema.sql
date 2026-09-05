@@ -60,6 +60,11 @@ INSERT INTO `users` (`id`, `sponsor_id`, `full_name`, `phone`, `password`, `rank
 (1, NULL, 'System Super Admin', '9999999999', '$2y$10$Qwhe0kLjRG.wQSMoWt/NgONJzOWJr7dwkTBlDwrcEO5J1UVh/6jqi', 12, 1000000.00, 1)
 ON DUPLICATE KEY UPDATE `is_admin` = 1;
 
+-- Seed Default Test Member Account (Phone: 90000000001, Password: password123)
+INSERT INTO `users` (`id`, `sponsor_id`, `full_name`, `phone`, `password`, `rank_level`, `wallet_balance`, `is_admin`) VALUES
+(2, 1, 'Test Member Level 1', '90000000001', '$2y$10$/BxkewDTGrnqejs3UuBYbu.jVi5r3wNyZP4aJbRymVxNgmO6MZ6wS', 0, 500.00, 0)
+ON DUPLICATE KEY UPDATE `phone` = VALUES(`phone`);
+
 -- Seed rank_definitions
 INSERT INTO `rank_definitions` (`rank_id`, `rank_name`, `requirement_team_count`, `rank_incentive`, `monthly_incentive`, `monthly_duration_months`) VALUES
 (1, 'Promoter', 5, 500.00, 0.00, 0),
